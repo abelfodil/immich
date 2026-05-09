@@ -66,6 +66,10 @@ export class TimelineService extends BaseService {
       await this.requireAccess({ auth, permission: Permission.TagRead, ids: [dto.tagId] });
     }
 
+    if (dto.petId) {
+      await this.requireAccess({ auth, permission: Permission.PetRead, ids: [dto.petId] });
+    }
+
     if (dto.withPartners) {
       const requestedArchived = dto.visibility === AssetVisibility.Archive || dto.visibility === undefined;
       const requestedFavorite = dto.isFavorite === true || dto.isFavorite === false;

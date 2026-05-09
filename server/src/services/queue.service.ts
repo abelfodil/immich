@@ -231,6 +231,14 @@ export class QueueService extends BaseService {
         return this.jobRepository.queue({ name: JobName.FacialRecognitionQueueAll, data: { force } });
       }
 
+      case QueueName.PetDetection: {
+        return this.jobRepository.queue({ name: JobName.PetDetectionQueueAll, data: { force } });
+      }
+
+      case QueueName.PetRecognition: {
+        return this.jobRepository.queue({ name: JobName.PetRecognitionQueueAll, data: { force } });
+      }
+
       case QueueName.Library: {
         return this.jobRepository.queue({ name: JobName.LibraryScanQueueAll, data: { force } });
       }
@@ -252,6 +260,7 @@ export class QueueService extends BaseService {
   private isConcurrentQueue(name: QueueName): name is ConcurrentQueueName {
     return ![
       QueueName.FacialRecognition,
+      QueueName.PetRecognition,
       QueueName.StorageTemplateMigration,
       QueueName.DuplicateDetection,
       QueueName.BackupDatabase,

@@ -243,6 +243,7 @@
     }
     assetViewerManager.clearHighlightedFaces();
     assetViewerManager.hideHiddenPeople();
+    assetViewerManager.hideHiddenPets();
     assetViewerManager.zoom = 1;
   });
 </script>

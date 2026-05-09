@@ -1,6 +1,6 @@
 import { Selectable, ShallowDehydrateObject } from 'kysely';
 import { createZodDto } from 'nestjs-zod';
-import { AssetFace, AssetFile, Exif, Stack, Tag, User } from 'src/database';
+import { AssetFace, AssetFile, AssetPet, Exif, Stack, Tag, User } from 'src/database';
 import { HistoryBuilder } from 'src/decorators';
 import { AuthDto } from 'src/dtos/auth.dto';
 import { AssetEditActionItem } from 'src/dtos/editing.dto';
@@ -12,6 +12,12 @@ import {
   mapFacesWithoutPerson,
   mapPerson,
 } from 'src/dtos/person.dto';
+import {
+  PetWithDetectionsResponseDto,
+  PetWithDetectionsResponseSchema,
+  mapAssetPetWithoutPet,
+  mapPet,
+} from 'src/dtos/pet.dto';
 import { TagResponseSchema, mapTag } from 'src/dtos/tag.dto';
 import { UserResponseSchema, mapUser } from 'src/dtos/user.dto';
 import {
@@ -109,6 +115,7 @@ export const AssetResponseSchema = SanitizedAssetResponseSchema.extend(
     tags: z.array(TagResponseSchema).optional(),
     people: z.array(PersonWithFacesResponseSchema).optional(),
     unassignedFaces: z.array(AssetFaceWithoutPersonResponseSchema).optional(),
+    pets: z.array(PetWithDetectionsResponseSchema).optional(),
     checksum: z.string().describe('Base64 encoded SHA1 hash'),
     stack: AssetStackResponseSchema.nullish(),
     duplicateId: z.string().nullish().describe('Duplicate group ID'),
@@ -140,6 +147,7 @@ export type MapAsset = {
   edits?: ShallowDehydrateObject<AssetEditActionItem>[];
   exifInfo?: ShallowDehydrateObject<Selectable<Exif>> | null;
   faces?: ShallowDehydrateObject<AssetFace>[];
+  assetPets?: ShallowDehydrateObject<AssetPet>[];
   fileCreatedAt: Date;
   fileModifiedAt: Date;
   files?: ShallowDehydrateObject<AssetFile>[];
@@ -168,6 +176,23 @@ export type AssetMapOptions = {
   stripMetadata?: boolean;
   withStack?: boolean;
   auth?: AuthDto;
+};
+
+const petsWithDetections = (assetPets?: MaybeDehydrated<AssetPet>[]): PetWithDetectionsResponseDto[] => {
+  if (!assetPets) {
+    return [];
+  }
+  const petMap = new Map<string, PetWithDetectionsResponseDto>();
+  for (const ap of assetPets) {
+    if (!ap.pet) {
+      continue;
+    }
+    if (!petMap.has(ap.pet.id)) {
+      petMap.set(ap.pet.id, { ...mapPet(ap.pet), detections: [] });
+    }
+    petMap.get(ap.pet.id)!.detections.push(mapAssetPetWithoutPet(ap));
+  }
+  return [...petMap.values()];
 };
 
 const peopleWithFaces = (
@@ -268,5 +293,6 @@ export function mapAsset(entity: MaybeDehydrated<MapAsset>, options: AssetMapOpt
     width: entity.width,
     height: entity.height,
     isEdited: entity.isEdited,
+    pets: petsWithDetections(entity.assetPets),
   };
 }

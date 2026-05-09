@@ -454,6 +454,43 @@ class PersonAccess {
   }
 }
 
+class PetAccess {
+  constructor(private db: Kysely<DB>) {}
+
+  @GenerateSql({ params: [DummyValue.UUID, DummyValue.UUID_SET] })
+  @ChunkedSet({ paramIndex: 1 })
+  async checkOwnerAccess(userId: string, petIds: Set<string>) {
+    if (petIds.size === 0) {
+      return new Set<string>();
+    }
+
+    return this.db
+      .selectFrom('pet')
+      .select('pet.id')
+      .where('pet.id', 'in', [...petIds])
+      .where('pet.ownerId', '=', userId)
+      .execute()
+      .then((pets) => new Set(pets.map((pet) => pet.id)));
+  }
+
+  @GenerateSql({ params: [DummyValue.UUID, DummyValue.UUID_SET] })
+  @ChunkedSet({ paramIndex: 1 })
+  async checkDetectionOwnerAccess(userId: string, detectionIds: Set<string>) {
+    if (detectionIds.size === 0) {
+      return new Set<string>();
+    }
+
+    return this.db
+      .selectFrom('asset_pet')
+      .select('asset_pet.id')
+      .leftJoin('asset', (join) => join.onRef('asset.id', '=', 'asset_pet.assetId').on('asset.deletedAt', 'is', null))
+      .where('asset_pet.id', 'in', [...detectionIds])
+      .where('asset.ownerId', '=', userId)
+      .execute()
+      .then((detections) => new Set(detections.map((d) => d.id)));
+  }
+}
+
 class PartnerAccess {
   constructor(private db: Kysely<DB>) {}
 
@@ -524,6 +561,7 @@ export class AccessRepository {
   memory: MemoryAccess;
   notification: NotificationAccess;
   person: PersonAccess;
+  pet: PetAccess;
   partner: PartnerAccess;
   session: SessionAccess;
   stack: StackAccess;
@@ -540,6 +578,7 @@ export class AccessRepository {
     this.memory = new MemoryAccess(db);
     this.notification = new NotificationAccess(db);
     this.person = new PersonAccess(db);
+    this.pet = new PetAccess(db);
     this.partner = new PartnerAccess(db);
     this.session = new SessionAccess(db);
     this.stack = new StackAccess(db);

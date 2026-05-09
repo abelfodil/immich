@@ -446,6 +446,15 @@ export class AssetJobRepository {
   }
 
   @GenerateSql({ params: [], stream: true })
+  streamForDetectPetsJob(force?: boolean) {
+    return this.assetsWithPreviews()
+      .$if(force === false, (qb) => qb.where('job_status.petsRecognizedAt', 'is', null))
+      .select(['asset.id'])
+      .orderBy('asset.fileCreatedAt', 'desc')
+      .stream();
+  }
+
+  @GenerateSql({ params: [], stream: true })
   streamForOcrJob(force?: boolean) {
     return this.db
       .selectFrom('asset')

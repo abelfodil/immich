@@ -43,7 +43,7 @@ import { getAssetFile, getDimensions } from 'src/utils/asset.util';
 import { checkFaceVisibility, checkOcrVisibility } from 'src/utils/editor';
 import { BaseConfig, ThumbnailConfig } from 'src/utils/media';
 import { mimeTypes } from 'src/utils/mime-types';
-import { clamp, isFaceImportEnabled, isFacialRecognitionEnabled } from 'src/utils/misc';
+import { clamp, isFaceImportEnabled, isFacialRecognitionEnabled, isPetRecognitionEnabled } from 'src/utils/misc';
 import { getOutputDimensions } from 'src/utils/transform';
 
 interface UpsertFileOptions {
@@ -106,6 +106,25 @@ export class MediaService extends BaseService {
       }
 
       jobs.push({ name: JobName.PersonGenerateThumbnail, data: { id: person.id } });
+      if (jobs.length >= JOBS_ASSET_PAGINATION_SIZE) {
+        await queueAll();
+      }
+    }
+
+    await queueAll();
+
+    const pets = this.petRepository.getAll(force ? undefined : { thumbnailPath: '' });
+
+    for await (const pet of pets) {
+      if (!pet.thumbnailAssetId) {
+        const detection = await this.petRepository.getRandomDetection(pet.id);
+        if (!detection) {
+          continue;
+        }
+        await this.petRepository.update({ id: pet.id, thumbnailAssetId: detection.id });
+      }
+
+      jobs.push({ name: JobName.PetGenerateThumbnail, data: { id: pet.id } });
       if (jobs.length >= JOBS_ASSET_PAGINATION_SIZE) {
         await queueAll();
       }
@@ -463,6 +482,68 @@ export class MediaService extends BaseService {
 
     await this.mediaRepository.generateThumbnail(decodedImage, thumbnailOptions, thumbnailPath);
     await this.personRepository.update({ id, thumbnailPath });
+
+    return JobStatus.Success;
+  }
+
+  @OnJob({ name: JobName.PetGenerateThumbnail, queue: QueueName.ThumbnailGeneration })
+  async handleGeneratePetThumbnail({ id }: JobOf<JobName.PetGenerateThumbnail>): Promise<JobStatus> {
+    const { machineLearning, image } = await this.getConfig({ withCache: true });
+    if (!isPetRecognitionEnabled(machineLearning)) {
+      return JobStatus.Skipped;
+    }
+
+    const data = await this.petRepository.getDataForThumbnailGenerationJob(id);
+    if (!data) {
+      this.logger.error(`Could not generate pet thumbnail for ${id}: missing data`);
+      return JobStatus.Failed;
+    }
+
+    const { ownerId, x1, y1, x2, y2, oldWidth, oldHeight, exifOrientation, previewPath, originalPath } = data;
+    let inputImage: string | Buffer;
+    if (data.type === AssetType.Video) {
+      if (!previewPath) {
+        this.logger.error(`Could not generate pet thumbnail for video ${id}: missing preview path`);
+        return JobStatus.Failed;
+      }
+      inputImage = previewPath;
+    } else if (image.extractEmbedded && mimeTypes.isRaw(originalPath)) {
+      const extracted = await this.extractImage(originalPath, image.preview.size);
+      inputImage = extracted ? extracted.buffer : originalPath;
+    } else {
+      inputImage = originalPath;
+    }
+
+    const { data: decodedImage, info } = await this.mediaRepository.decodeImage(inputImage, {
+      colorspace: image.colorspace,
+      processInvalidImages: process.env.IMMICH_PROCESS_INVALID_IMAGES === 'true',
+      orientation: Buffer.isBuffer(inputImage) && exifOrientation ? Number(exifOrientation) : undefined,
+    });
+
+    const thumbnailPath = StorageCore.getPersonThumbnailPath({ id, ownerId });
+    this.storageCore.ensureFolders(thumbnailPath);
+
+    const thumbnailOptions: GenerateThumbnailOptions = {
+      colorspace: image.colorspace,
+      format: ImageFormat.Jpeg,
+      raw: info,
+      quality: image.thumbnail.quality,
+      progressive: false,
+      processInvalidImages: false,
+      size: FACE_THUMBNAIL_SIZE,
+      edits: [
+        {
+          action: AssetEditAction.Crop,
+          parameters: this.getCrop(
+            { old: { width: oldWidth, height: oldHeight }, new: { width: info.width, height: info.height } },
+            { x1, y1, x2, y2 },
+          ),
+        },
+      ],
+    };
+
+    await this.mediaRepository.generateThumbnail(decodedImage, thumbnailOptions, thumbnailPath);
+    await this.petRepository.update({ id, thumbnailPath });
 
     return JobStatus.Success;
   }

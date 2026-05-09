@@ -15,7 +15,7 @@ import {
 import { PostgresJSDialect } from 'kysely-postgres-js';
 import { jsonArrayFrom, jsonObjectFrom } from 'kysely/helpers/postgres';
 import { Notice, PostgresError } from 'postgres';
-import { columns, lockableProperties, LockableProperty, Person } from 'src/database';
+import { columns, lockableProperties, LockableProperty, Person, Pet } from 'src/database';
 import { AssetEditActionItem } from 'src/dtos/editing.dto';
 import { AssetFileType, AssetVisibility, DatabaseExtension, ExifOrientation } from 'src/enum';
 import { AssetSearchBuilderOptions } from 'src/repositories/search.repository';
@@ -244,6 +244,38 @@ export function hasPeople<O>(qb: SelectQueryBuilder<DB, 'asset', O>, personIds: 
         .having((eb) => eb.fn.count('personId').distinct(), '=', personIds.length)
         .as('has_people'),
     (join) => join.onRef('has_people.assetId', '=', 'asset.id'),
+  );
+}
+
+export function withAssetPetsAndPet(eb: ExpressionBuilder<DB, 'asset'>) {
+  return jsonArrayFrom(
+    eb
+      .selectFrom('asset_pet')
+      .leftJoinLateral(
+        (eb) => eb.selectFrom('pet').selectAll('pet').whereRef('asset_pet.petId', '=', 'pet.id').as('pet'),
+        (join) => join.onTrue(),
+      )
+      .selectAll('asset_pet')
+      .select((eb) => eb.table('pet').$castTo<ShallowDehydrateObject<Pet>>().as('pet'))
+      .whereRef('asset_pet.assetId', '=', 'asset.id')
+      .where('asset_pet.deletedAt', 'is', null)
+      .where('asset_pet.isVisible', 'is', true),
+  ).as('assetPets');
+}
+
+export function hasPets<O>(qb: SelectQueryBuilder<DB, 'asset', O>, petIds: string[]) {
+  return qb.innerJoin(
+    (eb) =>
+      eb
+        .selectFrom('asset_pet')
+        .select('assetId')
+        .where('petId', '=', anyUuid(petIds!))
+        .where('deletedAt', 'is', null)
+        .where('isVisible', 'is', true)
+        .groupBy('assetId')
+        .having((eb) => eb.fn.count('petId').distinct(), '=', petIds.length)
+        .as('has_pets'),
+    (join) => join.onRef('has_pets.assetId', '=', 'asset.id'),
   );
 }
 

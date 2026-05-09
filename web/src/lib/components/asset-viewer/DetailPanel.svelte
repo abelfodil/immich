@@ -33,6 +33,8 @@
   import UserAvatar from '../shared-components/UserAvatar.svelte';
   import AlbumListItemDetails from './AlbumListItemDetails.svelte';
   import DetailPanelPeople from '$lib/components/asset-viewer/DetailPanelPeople.svelte';
+  import DetailPanelPets from '$lib/components/asset-viewer/DetailPanelPets.svelte';
+  import PetSidePanel from '$lib/components/asset-viewer/PetSidePanel.svelte';
 
   interface Props {
     asset: AssetResponseDto;
@@ -94,9 +96,15 @@
     return undefined;
   };
 
+  let isPetSidePanelOpen = $state(false);
+
   const handleRefreshPeople = async () => {
     asset = await getAssetInfo({ id: asset.id });
     assetViewerManager.closeEditFacesPanel();
+  };
+
+  const handleRefreshPets = async () => {
+    asset = await getAssetInfo({ id: asset.id });
   };
 
   const getAssetFolderHref = (asset: AssetResponseDto) => {
@@ -106,6 +114,7 @@
 
   onDestroy(() => {
     assetViewerManager.closeEditFacesPanel();
+    isPetSidePanelOpen = false;
   });
 </script>
 
@@ -150,6 +159,7 @@
     <DetailPanelDescription {asset} {isOwner} />
     <DetailPanelRating {asset} {isOwner} />
     <DetailPanelPeople {asset} {isOwner} {previousRoute} />
+    <DetailPanelPets {asset} {isOwner} {previousRoute} onOpenPetPanel={() => (isPetSidePanelOpen = true)} />
 
     <div class="p-4">
       {#if asset.exifInfo}
@@ -386,5 +396,14 @@
     assetType={asset.type}
     onClose={() => assetViewerManager.closeEditFacesPanel()}
     onRefresh={handleRefreshPeople}
+  />
+{/if}
+
+{#if isPetSidePanelOpen}
+  <PetSidePanel
+    assetId={asset.id}
+    assetType={asset.type}
+    onClose={() => (isPetSidePanelOpen = false)}
+    onRefresh={handleRefreshPets}
   />
 {/if}

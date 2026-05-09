@@ -8,6 +8,7 @@ import {
   getAssetThumbnailPath,
   getBaseUrl,
   getPeopleThumbnailPath,
+  getPetsThumbnailPath,
   getUserProfileImagePath,
   linkOAuthAccount,
   startOAuth,
@@ -15,6 +16,7 @@ import {
   type AssetResponseDto,
   type MemoryResponseDto,
   type PersonResponseDto,
+  type PetResponseDto,
   type ServerVersionResponseDto,
   type SharedLinkResponseDto,
   type UserResponseDto,
@@ -248,6 +250,9 @@ export const getProfileImageUrl = (user: UserResponseDto) =>
 
 export const getPeopleThumbnailUrl = (person: PersonResponseDto, updatedAt?: string) =>
   createUrl(getPeopleThumbnailPath(person.id), { updatedAt: updatedAt ?? person.updatedAt });
+
+export const getPetsThumbnailUrl = (pet: PetResponseDto, updatedAt?: string) =>
+  createUrl(getPetsThumbnailPath(pet.id), { updatedAt: updatedAt ?? pet.updatedAt });
 
 export const copyToClipboard = async (secret: string) => {
   const $t = get(t);

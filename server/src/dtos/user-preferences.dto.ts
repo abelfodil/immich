@@ -49,6 +49,14 @@ const PeopleUpdateSchema = z
   .optional()
   .meta({ id: 'PeopleUpdate' });
 
+const PetsUpdateSchema = z
+  .object({
+    enabled: z.boolean().optional().describe('Whether pets are enabled'),
+    sidebarWeb: z.boolean().optional().describe('Whether pets appear in web sidebar'),
+  })
+  .optional()
+  .meta({ id: 'PetsUpdate' });
+
 const SharedLinksUpdateSchema = z
   .object({
     enabled: z.boolean().optional().describe('Whether shared links are enabled'),
@@ -107,6 +115,7 @@ const UserPreferencesUpdateSchema = z
     folders: FoldersUpdateSchema,
     memories: MemoriesUpdateSchema,
     people: PeopleUpdateSchema,
+    pets: PetsUpdateSchema,
     purchase: PurchaseUpdateSchema,
     ratings: RatingsUpdateSchema,
     sharedLinks: SharedLinksUpdateSchema,
@@ -140,6 +149,13 @@ const PeopleResponseSchema = z
     sidebarWeb: z.boolean().describe('Whether people appear in web sidebar'),
   })
   .meta({ id: 'PeopleResponse' });
+
+const PetsResponseSchema = z
+  .object({
+    enabled: z.boolean().describe('Whether pets are enabled'),
+    sidebarWeb: z.boolean().describe('Whether pets appear in web sidebar'),
+  })
+  .meta({ id: 'PetsResponse' });
 
 const RatingsResponseSchema = z
   .object({
@@ -195,6 +211,7 @@ const UserPreferencesResponseSchema = z
     folders: FoldersResponseSchema,
     memories: MemoriesResponseSchema,
     people: PeopleResponseSchema,
+    pets: PetsResponseSchema,
     ratings: RatingsResponseSchema,
     sharedLinks: SharedLinksResponseSchema,
     tags: TagsResponseSchema,

@@ -60,3 +60,6 @@ export const getUserProfileImagePath = (userId: string) =>
 
 export const getPeopleThumbnailPath = (personId: string) =>
   `/people/${personId}/thumbnail`;
+
+export const getPetsThumbnailPath = (petId: string) =>
+  `/pets/${petId}/thumbnail`;

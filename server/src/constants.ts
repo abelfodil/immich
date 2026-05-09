@@ -31,6 +31,7 @@ export const VECTOR_EXTENSIONS = [DatabaseExtension.VectorChord, DatabaseExtensi
 export const VECTOR_INDEX_TABLES = {
   [VectorIndex.Clip]: 'smart_search',
   [VectorIndex.Face]: 'face_search',
+  [VectorIndex.Pet]: 'pet_search',
 } as const;
 
 export const VECTORCHORD_LIST_SLACK_FACTOR = 1.2;
@@ -163,6 +164,8 @@ export const endpointTags: Record<ApiTag, string> = {
   [ApiTag.Partners]: 'A partner is a link with another user that allows sharing of assets between two users.',
   [ApiTag.People]:
     'A person is a collection of faces, which can be favorited and named. A person can also be merged into another person. People are automatically created via the face recognition job.',
+  [ApiTag.Pets]:
+    'A pet is a collection of animal detections, which can be favorited and named. A pet can also be merged into another pet. Pets are automatically created via the pet recognition job.',
   [ApiTag.Plugins]:
     'A plugin is an installed module that makes filters and actions available for the workflow feature.',
   [ApiTag.Queues]:

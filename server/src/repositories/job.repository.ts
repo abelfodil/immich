@@ -232,6 +232,12 @@ export class JobRepository {
       case JobName.FacialRecognitionQueueAll: {
         return { jobId: JobName.FacialRecognitionQueueAll };
       }
+      case JobName.PetGenerateThumbnail: {
+        return { priority: 1 };
+      }
+      case JobName.PetRecognitionQueueAll: {
+        return { jobId: JobName.PetRecognitionQueueAll };
+      }
       case JobName.VersionCheck: {
         return { jobId: JobName.VersionCheck };
       }

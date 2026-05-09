@@ -198,6 +198,7 @@ export type ConcurrentQueueName = Exclude<
   QueueName,
   | QueueName.StorageTemplateMigration
   | QueueName.FacialRecognition
+  | QueueName.PetRecognition
   | QueueName.DuplicateDetection
   | QueueName.BackupDatabase
 >;
@@ -361,6 +362,14 @@ export type JobItem =
   | { name: JobName.FacialRecognitionQueueAll; data: INightlyJob }
   | { name: JobName.FacialRecognition; data: IDeferrableJob }
   | { name: JobName.PersonGenerateThumbnail; data: IEntityJob }
+
+  // Pet Recognition
+  | { name: JobName.PetDetectionQueueAll; data: IBaseJob }
+  | { name: JobName.PetDetection; data: IEntityJob }
+  | { name: JobName.PetRecognitionQueueAll; data: INightlyJob }
+  | { name: JobName.PetRecognition; data: IDeferrableJob }
+  | { name: JobName.PetGenerateThumbnail; data: IEntityJob }
+  | { name: JobName.PetCleanup; data?: IBaseJob }
 
   // Smart Search
   | { name: JobName.SmartSearchQueueAll; data: IBaseJob }
@@ -530,6 +539,10 @@ export type UserPreferences = {
     duration: number;
   };
   people: {
+    enabled: boolean;
+    sidebarWeb: boolean;
+  };
+  pets: {
     enabled: boolean;
     sidebarWeb: boolean;
   };

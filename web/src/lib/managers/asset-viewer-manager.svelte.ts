@@ -60,6 +60,7 @@ class AssetViewerManager extends BaseEventManager<Events> {
   #viewState = $state<boolean>(false);
   #highlightedFaces = $state<Faces[]>([]);
   #showingHiddenPeople = $state(false);
+  #showingHiddenPets = $state(false);
   gridScrollTarget = $state<AssetGridRouteSearchParams | null | undefined>();
 
   get asset() {
@@ -244,6 +245,18 @@ class AssetViewerManager extends BaseEventManager<Events> {
 
   hideHiddenPeople() {
     this.#showingHiddenPeople = false;
+  }
+
+  get isShowingHiddenPets() {
+    return this.#showingHiddenPets;
+  }
+
+  toggleHiddenPets() {
+    this.#showingHiddenPets = !this.#showingHiddenPets;
+  }
+
+  hideHiddenPets() {
+    this.#showingHiddenPets = false;
   }
 
   setAsset(asset: AssetResponseDto) {

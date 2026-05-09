@@ -74,6 +74,15 @@ export type SystemConfig = {
       minFaces: number;
       maxDistance: number;
     };
+    petRecognition: {
+      enabled: boolean;
+      detectionModelName: string;
+      recognitionModelName: string;
+      classFilter: number[];
+      minScore: number;
+      minPets: number;
+      maxDistance: number;
+    };
     ocr: {
       enabled: boolean;
       modelName: string;
@@ -230,6 +239,7 @@ export const defaults = Object.freeze<SystemConfig>({
     [QueueName.SmartSearch]: { concurrency: 2 },
     [QueueName.MetadataExtraction]: { concurrency: 5 },
     [QueueName.FaceDetection]: { concurrency: 2 },
+    [QueueName.PetDetection]: { concurrency: 2 },
     [QueueName.Search]: { concurrency: 5 },
     [QueueName.Sidecar]: { concurrency: 5 },
     [QueueName.Library]: { concurrency: 5 },
@@ -267,6 +277,15 @@ export const defaults = Object.freeze<SystemConfig>({
       minScore: 0.7,
       maxDistance: 0.5,
       minFaces: 3,
+    },
+    petRecognition: {
+      enabled: true,
+      detectionModelName: 'yolov8m',
+      recognitionModelName: 'MegaDescriptor-L-384',
+      classFilter: [15, 16, 17, 18, 19, 20, 21, 22, 23],
+      minScore: 0.6,
+      maxDistance: 1,
+      minPets: 3,
     },
     ocr: {
       enabled: true,

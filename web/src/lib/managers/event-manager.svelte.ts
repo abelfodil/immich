@@ -6,6 +6,7 @@ import type {
   LibraryResponseDto,
   LoginResponseDto,
   PersonResponseDto,
+  PetResponseDto,
   QueueResponseDto,
   SharedLinkResponseDto,
   SystemConfigDto,
@@ -48,6 +49,9 @@ export type Events = {
   PersonUpdate: [PersonResponseDto];
   PersonThumbnailReady: [{ id: string }];
   PersonAssetDelete: [{ id: string; assetId: string }];
+
+  PetUpdate: [PetResponseDto];
+  PetThumbnailReady: [{ id: string }];
 
   BackupDeleteStatus: [{ filename: string; isDeleting: boolean }];
   BackupDeleted: [{ filename: string }];

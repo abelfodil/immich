@@ -26,7 +26,9 @@ from immich_ml.models.clip.textual import MClipTextualEncoder, OpenClipTextualEn
 from immich_ml.models.clip.visual import OpenClipVisualEncoder
 from immich_ml.models.facial_recognition.detection import FaceDetector
 from immich_ml.models.facial_recognition.recognition import FaceRecognizer
+from immich_ml.models.object_detection.detection import CocoDetector
 from immich_ml.models.ocr.detection import TextDetector
+from immich_ml.models.pet_recognition.recognition import PetEmbedder
 from immich_ml.models.ocr.recognition import TextRecognizer
 from immich_ml.models.ocr.schemas import OcrOptions
 from immich_ml.schemas import ModelFormat, ModelPrecision, ModelTask, ModelType
@@ -896,6 +898,196 @@ class TestFaceRecognition:
         recognizer = FaceRecognizer("buffalo_l", cache_dir="test_cache")
 
         assert recognizer.batch_size is None
+
+
+class TestObjectDetection:
+    def test_set_min_score(self, mocker: MockerFixture) -> None:
+        mocker.patch.object(CocoDetector, "load")
+        detector = CocoDetector("yolov8m", min_score=0.4, cache_dir="test_cache")
+
+        assert detector.min_score == 0.4
+
+    def test_set_class_filter(self, mocker: MockerFixture) -> None:
+        mocker.patch.object(CocoDetector, "load")
+        detector = CocoDetector("yolov8m", class_filter={15, 16}, cache_dir="test_cache")
+
+        assert detector.class_filter == frozenset({15, 16})
+
+    def test_class_filter_none_passes_all_classes(self, mocker: MockerFixture) -> None:
+        mocker.patch.object(CocoDetector, "load")
+        detector = CocoDetector("yolov8m", cache_dir="test_cache")
+
+        assert detector.class_filter is None
+
+    def test_detection_returns_filtered_boxes(self, cv_image: cv2.Mat, mocker: MockerFixture) -> None:
+        mocker.patch.object(CocoDetector, "load")
+        detector = CocoDetector("yolov8m", min_score=0.5, class_filter={16}, cache_dir="test_cache")
+
+        # raw YOLO output: [1, 84, 8400] — two anchors, one cat (16), one person (0)
+        num_anchors = 8400
+        raw = np.zeros((1, 84, num_anchors), dtype=np.float32)
+        h, w = cv_image.shape[:2]
+        # anchor 0: cat, high score, box in image center
+        raw[0, :4, 0] = [w / 2, h / 2, 50, 50]  # cx, cy, bw, bh
+        raw[0, 4 + 16, 0] = 0.9  # class 16 (cat)
+        # anchor 1: person, high score — should be filtered out
+        raw[0, :4, 1] = [w / 2, h / 2, 60, 60]
+        raw[0, 4 + 0, 1] = 0.95  # class 0 (person)
+
+        session = mock.Mock()
+        session.run.return_value = [raw]
+        session.get_inputs.return_value = [SimpleNamespace(name="images")]
+        detector.session = session
+
+        result = detector.predict(cv_image)
+
+        assert isinstance(result, dict)
+        assert result["boxes"].shape[0] == 1
+        assert result["class_ids"][0] == 16
+        assert result["scores"][0] >= 0.5
+
+    def test_detection_below_min_score_filtered(self, cv_image: cv2.Mat, mocker: MockerFixture) -> None:
+        mocker.patch.object(CocoDetector, "load")
+        detector = CocoDetector("yolov8m", min_score=0.8, cache_dir="test_cache")
+
+        num_anchors = 8400
+        raw = np.zeros((1, 84, num_anchors), dtype=np.float32)
+        h, w = cv_image.shape[:2]
+        raw[0, :4, 0] = [w / 2, h / 2, 50, 50]
+        raw[0, 4 + 16, 0] = 0.5  # below threshold
+
+        session = mock.Mock()
+        session.run.return_value = [raw]
+        session.get_inputs.return_value = [SimpleNamespace(name="images")]
+        detector.session = session
+
+        result = detector.predict(cv_image)
+
+        assert result["boxes"].shape[0] == 0
+
+    def test_detection_empty_image(self, cv_image: cv2.Mat, mocker: MockerFixture) -> None:
+        mocker.patch.object(CocoDetector, "load")
+        detector = CocoDetector("yolov8m", min_score=0.5, cache_dir="test_cache")
+
+        raw = np.zeros((1, 84, 8400), dtype=np.float32)
+        session = mock.Mock()
+        session.run.return_value = [raw]
+        session.get_inputs.return_value = [SimpleNamespace(name="images")]
+        detector.session = session
+
+        result = detector.predict(cv_image)
+
+        assert result["boxes"].shape == (0, 4)
+        assert result["scores"].shape == (0,)
+        assert result["class_ids"].shape == (0,)
+
+    def test_configure_updates_min_score(self, mocker: MockerFixture) -> None:
+        mocker.patch.object(CocoDetector, "load")
+        detector = CocoDetector("yolov8m", min_score=0.5, cache_dir="test_cache")
+        detector.configure(minScore=0.9)
+
+        assert detector.min_score == 0.9
+
+    def test_configure_updates_class_filter(self, mocker: MockerFixture) -> None:
+        mocker.patch.object(CocoDetector, "load")
+        detector = CocoDetector("yolov8m", class_filter={15, 16}, cache_dir="test_cache")
+        detector.configure(classFilter=[17, 18])
+
+        assert detector.class_filter == frozenset({17, 18})
+
+    def test_configure_clears_class_filter(self, mocker: MockerFixture) -> None:
+        mocker.patch.object(CocoDetector, "load")
+        detector = CocoDetector("yolov8m", class_filter={15, 16}, cache_dir="test_cache")
+        detector.configure(classFilter=None)
+
+        assert detector.class_filter is None
+
+
+class TestPetRecognition:
+    def test_empty_detections_returns_empty_list(self, cv_image: cv2.Mat, mocker: MockerFixture) -> None:
+        mocker.patch.object(PetEmbedder, "load")
+        embedder = PetEmbedder("MegaDescriptor-L-384", cache_dir="test_cache")
+
+        detections = {
+            "boxes": np.empty((0, 4), dtype=np.float32),
+            "scores": np.empty(0, dtype=np.float32),
+            "class_ids": np.empty(0, dtype=np.int32),
+        }
+
+        result = embedder.predict(cv_image, detections)
+
+        assert result == []
+
+    def test_recognition_output_shape(self, cv_image: cv2.Mat, mocker: MockerFixture) -> None:
+        mocker.patch.object(PetEmbedder, "load")
+        embedder = PetEmbedder("MegaDescriptor-L-384", cache_dir="test_cache")
+
+        num_pets = 2
+        h, w = cv_image.shape[:2]
+        boxes = np.array([[10, 10, w // 2, h // 2], [w // 2, h // 2, w - 10, h - 10]], dtype=np.float32)
+        scores = np.array([0.9, 0.85], dtype=np.float32)
+        class_ids = np.array([16, 17], dtype=np.int32)
+        detections = {"boxes": boxes, "scores": scores, "class_ids": class_ids}
+
+        embedding_dim = 1536
+        raw_embeddings = np.random.rand(num_pets, embedding_dim).astype(np.float32)
+        session = mock.Mock()
+        session.run.return_value = [raw_embeddings]
+        session.get_inputs.return_value = [SimpleNamespace(name="input")]
+        embedder.session = session
+
+        result = embedder.predict(cv_image, detections)
+
+        assert len(result) == num_pets
+        for i, pet in enumerate(result):
+            assert set(pet["boundingBox"]) == {"x1", "y1", "x2", "y2"}
+            assert isinstance(pet["score"], float)
+            assert pet["classId"] == int(class_ids[i])
+            embedding = orjson.loads(pet["embedding"])
+            assert len(embedding) == embedding_dim
+
+    def test_embeddings_are_l2_normalized(self, cv_image: cv2.Mat, mocker: MockerFixture) -> None:
+        mocker.patch.object(PetEmbedder, "load")
+        embedder = PetEmbedder("MegaDescriptor-L-384", cache_dir="test_cache")
+
+        h, w = cv_image.shape[:2]
+        boxes = np.array([[10, 10, w // 2, h // 2]], dtype=np.float32)
+        scores = np.array([0.9], dtype=np.float32)
+        class_ids = np.array([16], dtype=np.int32)
+        detections = {"boxes": boxes, "scores": scores, "class_ids": class_ids}
+
+        raw_embeddings = np.array([[3.0, 4.0] + [0.0] * 1534], dtype=np.float32)
+        session = mock.Mock()
+        session.run.return_value = [raw_embeddings]
+        session.get_inputs.return_value = [SimpleNamespace(name="input")]
+        embedder.session = session
+
+        result = embedder.predict(cv_image, detections)
+
+        embedding = np.array(orjson.loads(result[0]["embedding"]))
+        norm = np.linalg.norm(embedding)
+        assert abs(norm - 1.0) < 1e-5
+
+    def test_zero_embedding_does_not_divide_by_zero(self, cv_image: cv2.Mat, mocker: MockerFixture) -> None:
+        mocker.patch.object(PetEmbedder, "load")
+        embedder = PetEmbedder("MegaDescriptor-L-384", cache_dir="test_cache")
+
+        h, w = cv_image.shape[:2]
+        boxes = np.array([[10, 10, w // 2, h // 2]], dtype=np.float32)
+        scores = np.array([0.9], dtype=np.float32)
+        class_ids = np.array([16], dtype=np.int32)
+        detections = {"boxes": boxes, "scores": scores, "class_ids": class_ids}
+
+        raw_embeddings = np.zeros((1, 1536), dtype=np.float32)
+        session = mock.Mock()
+        session.run.return_value = [raw_embeddings]
+        session.get_inputs.return_value = [SimpleNamespace(name="input")]
+        embedder.session = session
+
+        result = embedder.predict(cv_image, detections)
+
+        embedding = np.array(orjson.loads(result[0]["embedding"]))
+        assert not np.any(np.isnan(embedding))
 
 
 class TestOcr:

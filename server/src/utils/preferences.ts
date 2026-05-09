@@ -22,6 +22,10 @@ const getDefaultPreferences = (): UserPreferences => {
       enabled: true,
       sidebarWeb: false,
     },
+    pets: {
+      enabled: true,
+      sidebarWeb: false,
+    },
     sharedLinks: {
       enabled: true,
       sidebarWeb: false,

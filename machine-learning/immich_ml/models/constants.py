@@ -75,6 +75,17 @@ _INSIGHTFACE_MODELS = {
 }
 
 
+_ULTRALYTICS_MODELS = {
+    "yolov8n", "yolov8s", "yolov8m", "yolov8l", "yolov8x",
+    "yolov9c", "yolov9e",
+    "yolo11n", "yolo11s", "yolo11m", "yolo11l", "yolo11x",
+}
+
+_TIMM_MODELS = {
+    "MegaDescriptor-L-384",
+    "MegaDescriptor-S-224",
+}
+
 _PADDLE_MODELS = {
     "PP-OCRv5_server",
     "PP-OCRv5_mobile",
@@ -174,5 +185,11 @@ def get_model_source(model_name: str) -> ModelSource | None:
 
     if cleaned_name in _PADDLE_MODELS:
         return ModelSource.PADDLE
+
+    if cleaned_name in _ULTRALYTICS_MODELS:
+        return ModelSource.ULTRALYTICS
+
+    if cleaned_name in _TIMM_MODELS:
+        return ModelSource.TIMM
 
     return None

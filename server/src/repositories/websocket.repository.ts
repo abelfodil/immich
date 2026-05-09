@@ -29,6 +29,7 @@ export interface ClientEventMap {
   on_asset_restore: [string[]];
   on_asset_stack_update: string[];
   on_person_thumbnail: [string];
+  on_pet_thumbnail: [string];
   on_server_version: [ServerVersionResponseDto];
   on_config_update: [];
   on_new_release: [ReleaseNotification];

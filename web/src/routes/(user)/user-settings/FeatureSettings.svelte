@@ -1,6 +1,7 @@
 <script lang="ts">
   import SettingAccordion from '$lib/components/shared-components/settings/SettingAccordion.svelte';
   import { authManager } from '$lib/managers/auth-manager.svelte';
+  import { featureFlagsManager } from '$lib/managers/feature-flags-manager.svelte';
   import { handleError } from '$lib/utils/handle-error';
   import { AssetOrder, updateMyPreferences } from '@immich/sdk';
   import { Button, Field, NumberInput, Select, Switch, toastManager } from '@immich/ui';
@@ -21,6 +22,10 @@
   // People
   let peopleEnabled = $state(authManager.preferences.people?.enabled ?? false);
   let peopleSidebar = $state(authManager.preferences.people?.sidebarWeb ?? false);
+
+  // Pets
+  let petsEnabled = $state(authManager.preferences.pets?.enabled ?? true);
+  let petsSidebar = $state(authManager.preferences.pets?.sidebarWeb ?? false);
 
   // Ratings
   let ratingsEnabled = $state(authManager.preferences.ratings?.enabled ?? false);
@@ -44,6 +49,7 @@
           folders: { enabled: foldersEnabled, sidebarWeb: foldersSidebar },
           memories: { enabled: memoriesEnabled, duration: memoriesDuration },
           people: { enabled: peopleEnabled, sidebarWeb: peopleSidebar },
+          pets: { enabled: petsEnabled, sidebarWeb: petsSidebar },
           ratings: { enabled: ratingsEnabled },
           sharedLinks: { enabled: sharedLinksEnabled, sidebarWeb: sharedLinkSidebar },
           tags: { enabled: tagsEnabled, sidebarWeb: tagsSidebar },
@@ -116,6 +122,20 @@
             {#if peopleEnabled}
               <Field label={$t('sidebar')} description={$t('sidebar_display_description')}>
                 <Switch bind:checked={peopleSidebar} />
+              </Field>
+            {/if}
+          </div>
+        </SettingAccordion>
+
+        <SettingAccordion key="pets" title={$t('pets')} subtitle={$t('pets_feature_description')}>
+          <div class="mt-4 flex flex-col gap-4 sm:ms-4">
+            <Field label={$t('enable')}>
+              <Switch bind:checked={petsEnabled} />
+            </Field>
+
+            {#if petsEnabled}
+              <Field label={$t('sidebar')} description={$t('sidebar_display_description')}>
+                <Switch bind:checked={petsSidebar} />
               </Field>
             {/if}
           </div>

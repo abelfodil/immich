@@ -301,6 +301,12 @@ export type PeopleResponse = {
     /** Whether people appear in web sidebar */
     sidebarWeb: boolean;
 };
+export type PetsPreferencesResponse = {
+    /** Whether pets are enabled */
+    enabled: boolean;
+    /** Whether pets appear in web sidebar */
+    sidebarWeb: boolean;
+};
 export type PurchaseResponse = {
     /** Date until which to hide buy button */
     hideBuyButtonUntil: string;
@@ -331,6 +337,7 @@ export type UserPreferencesResponseDto = {
     folders: FoldersResponse;
     memories: MemoriesResponse;
     people: PeopleResponse;
+    pets: PetsPreferencesResponse;
     purchase: PurchaseResponse;
     ratings: RatingsResponse;
     sharedLinks: SharedLinksResponse;
@@ -378,6 +385,12 @@ export type PeopleUpdate = {
     /** Whether people appear in web sidebar */
     sidebarWeb?: boolean;
 };
+export type PetsPreferencesUpdate = {
+    /** Whether pets are enabled */
+    enabled?: boolean;
+    /** Whether pets appear in web sidebar */
+    sidebarWeb?: boolean;
+};
 export type PurchaseUpdate = {
     /** Date until which to hide buy button */
     hideBuyButtonUntil?: string;
@@ -409,6 +422,7 @@ export type UserPreferencesUpdateDto = {
     folders?: FoldersUpdate;
     memories?: MemoriesUpdate;
     people?: PeopleUpdate;
+    pets?: PetsPreferencesUpdate;
     purchase?: PurchaseUpdate;
     ratings?: RatingsUpdate;
     sharedLinks?: SharedLinksUpdate;
@@ -893,6 +907,7 @@ export type AssetResponseDto = {
     /** Owner user ID */
     ownerId: string;
     people?: PersonWithFacesResponseDto[];
+    pets?: PetWithDetectionsResponseDto[];
     /** Is resized */
     resized?: boolean;
     stack?: (AssetStackResponseDto) | null;
@@ -1229,6 +1244,8 @@ export type QueuesResponseLegacyDto = {
     editor: QueueResponseLegacyDto;
     faceDetection: QueueResponseLegacyDto;
     facialRecognition: QueueResponseLegacyDto;
+    petDetection: QueueResponseLegacyDto;
+    petRecognition: QueueResponseLegacyDto;
     library: QueueResponseLegacyDto;
     metadataExtraction: QueueResponseLegacyDto;
     migration: QueueResponseLegacyDto;
@@ -1514,6 +1531,142 @@ export type AssetFaceUpdateDto = {
 export type PersonStatisticsResponseDto = {
     /** Number of assets */
     assets: number;
+};
+export type PetResponseDto = {
+    /** Pet color (hex) */
+    color?: string;
+    /** Pet ID */
+    id: string;
+    /** Is favorite */
+    isFavorite?: boolean;
+    /** Is hidden */
+    isHidden: boolean;
+    /** Pet name */
+    name: string;
+    /** Pet species (ML-derived) */
+    species: string;
+    /** Thumbnail path */
+    thumbnailPath: string;
+    /** Last update date */
+    updatedAt?: string;
+};
+export type PetWithDetectionsResponseDto = PetResponseDto & {
+    detections: AssetPetWithoutPetResponseDto[];
+};
+export type PetsResponseDto = {
+    /** Whether there are more pages */
+    hasNextPage?: boolean;
+    /** Number of hidden pets */
+    hidden: number;
+    pets: PetResponseDto[];
+    /** Total number of pets */
+    total: number;
+};
+export type PetCreateDto = {
+    /** Pet color (hex) */
+    color?: string | null;
+    /** Mark as favorite */
+    isFavorite?: boolean;
+    /** Pet visibility (hidden) */
+    isHidden?: boolean;
+    /** Pet name */
+    name?: string;
+};
+export type PetsUpdateItem = {
+    /** Pet color (hex) */
+    color?: string | null;
+    /** Asset ID used for thumbnail detection */
+    thumbnailAssetId?: string;
+    /** Pet ID */
+    id: string;
+    /** Mark as favorite */
+    isFavorite?: boolean;
+    /** Pet visibility (hidden) */
+    isHidden?: boolean;
+    /** Pet name */
+    name?: string;
+};
+export type PetsUpdateDto = {
+    /** Pets to update */
+    pets: PetsUpdateItem[];
+};
+export type PetUpdateDto = {
+    /** Pet color (hex) */
+    color?: string | null;
+    /** Asset ID used for thumbnail detection */
+    thumbnailAssetId?: string;
+    /** Mark as favorite */
+    isFavorite?: boolean;
+    /** Pet visibility (hidden) */
+    isHidden?: boolean;
+    /** Pet name */
+    name?: string;
+};
+export type MergePetDto = {
+    /** Pet IDs to merge */
+    ids: string[];
+};
+export type AssetPetUpdateItem = {
+    /** Asset ID */
+    assetId: string;
+    /** Pet ID */
+    petId: string;
+};
+export type AssetPetUpdateDto = {
+    /** Detection update items */
+    data: AssetPetUpdateItem[];
+};
+export type PetStatisticsResponseDto = {
+    /** Number of assets */
+    assets: number;
+};
+export type AssetPetWithoutPetResponseDto = {
+    /** Bounding box X1 coordinate */
+    boundingBoxX1: number;
+    /** Bounding box X2 coordinate */
+    boundingBoxX2: number;
+    /** Bounding box Y1 coordinate */
+    boundingBoxY1: number;
+    /** Bounding box Y2 coordinate */
+    boundingBoxY2: number;
+    /** Detection ID */
+    id: string;
+    /** Image height in pixels */
+    imageHeight: number;
+    /** Image width in pixels */
+    imageWidth: number;
+    sourceType?: SourceType;
+    /** ML-detected species */
+    species: string;
+};
+export type AssetPetResponseDto = AssetPetWithoutPetResponseDto & {
+    pet: (PetResponseDto) | null;
+};
+export type AssetPetCreateDto = {
+    /** Asset ID */
+    assetId: string;
+    /** Detection bounding box height */
+    height: number;
+    /** Image height in pixels */
+    imageHeight: number;
+    /** Image width in pixels */
+    imageWidth: number;
+    /** Pet ID */
+    petId: string;
+    /** Detection bounding box width */
+    width: number;
+    /** Detection bounding box X coordinate */
+    x: number;
+    /** Detection bounding box Y coordinate */
+    y: number;
+};
+export type AssetPetDeleteDto = {
+    /** Force delete even if pet has other detections */
+    force: boolean;
+};
+export type ReassignPetDetectionDto = {
+    /** Pet ID to assign the detection to */
+    petId: string;
 };
 export type PluginJsonSchemaProperty = {
     additionalProperties?: boolean | PluginJsonSchemaProperty;
@@ -2037,6 +2190,8 @@ export type ServerFeaturesDto = {
     email: boolean;
     /** Whether facial recognition is enabled */
     facialRecognition: boolean;
+    /** Whether pet recognition is enabled */
+    petRecognition: boolean;
     /** Whether face import is enabled */
     importFaces: boolean;
     /** Whether map feature is enabled */
@@ -2452,6 +2607,22 @@ export type OcrConfig = {
     /** Name of the model to use */
     modelName: string;
 };
+export type PetRecognitionConfig = {
+    /** COCO class IDs to detect as pets */
+    classFilter: number[];
+    /** Name of the object detection model */
+    detectionModelName: string;
+    /** Whether the task is enabled */
+    enabled: boolean;
+    /** Maximum distance threshold for pet recognition */
+    maxDistance: number;
+    /** Minimum number of pet detections required for recognition */
+    minPets: number;
+    /** Minimum confidence score for pet detection */
+    minScore: number;
+    /** Name of the pet recognition model */
+    recognitionModelName: string;
+};
 export type SystemConfigMachineLearningDto = {
     availabilityChecks: MachineLearningAvailabilityChecksDto;
     clip: ClipConfig;
@@ -2460,6 +2631,7 @@ export type SystemConfigMachineLearningDto = {
     enabled: boolean;
     facialRecognition: FacialRecognitionConfig;
     ocr: OcrConfig;
+    petRecognition: PetRecognitionConfig;
     /** ML service URLs */
     urls: string[];
 };
@@ -5269,6 +5441,226 @@ export function getPersonThumbnail({ id }: {
     }));
 }
 /**
+ * Get all pets
+ */
+export function getAllPets({ closestAssetId, closestPetId, page, size, withHidden }: {
+    closestAssetId?: string;
+    closestPetId?: string;
+    page?: number;
+    size?: number;
+    withHidden?: boolean;
+} = {}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: PetsResponseDto;
+    }>(`/pets${QS.query(QS.explode({
+        closestAssetId,
+        closestPetId,
+        page,
+        size,
+        withHidden
+    }))}`, {
+        ...opts
+    }));
+}
+/**
+ * Create a pet
+ */
+export function createPet({ petCreateDto }: {
+    petCreateDto: PetCreateDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 201;
+        data: PetResponseDto;
+    }>("/pets", oazapfts.json({
+        ...opts,
+        method: "POST",
+        body: petCreateDto
+    })));
+}
+/**
+ * Update pets
+ */
+export function updatePets({ petsUpdateDto }: {
+    petsUpdateDto: PetsUpdateDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: BulkIdResponseDto[];
+    }>("/pets", oazapfts.json({
+        ...opts,
+        method: "PUT",
+        body: petsUpdateDto
+    })));
+}
+/**
+ * Delete pets
+ */
+export function deletePets({ bulkIdsDto }: {
+    bulkIdsDto: BulkIdsDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText("/pets", oazapfts.json({
+        ...opts,
+        method: "DELETE",
+        body: bulkIdsDto
+    })));
+}
+/**
+ * Create a pet detection
+ */
+export function createPetDetection({ assetPetCreateDto }: {
+    assetPetCreateDto: AssetPetCreateDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 201;
+        data: AssetPetResponseDto;
+    }>("/pets/detections", oazapfts.json({
+        ...opts,
+        method: "POST",
+        body: assetPetCreateDto
+    })));
+}
+/**
+ * Get pet detections for an asset
+ */
+export function getPetDetections({ assetId }: {
+    assetId: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: AssetPetResponseDto[];
+    }>(`/pets/detections${QS.query(QS.explode({ assetId }))}`, {
+        ...opts
+    }));
+}
+/**
+ * Reassign a detection to a different pet
+ */
+export function reassignPetDetection({ id, reassignPetDetectionDto }: {
+    id: string;
+    reassignPetDetectionDto: ReassignPetDetectionDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: PetResponseDto;
+    }>(`/pets/detections/${encodeURIComponent(id)}`, oazapfts.json({
+        ...opts,
+        method: "PUT",
+        body: reassignPetDetectionDto
+    })));
+}
+/**
+ * Delete a pet detection
+ */
+export function deletePetDetection({ id, assetPetDeleteDto }: {
+    id: string;
+    assetPetDeleteDto: AssetPetDeleteDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText(`/pets/detections/${encodeURIComponent(id)}`, oazapfts.json({
+        ...opts,
+        method: "DELETE",
+        body: assetPetDeleteDto
+    })));
+}
+/**
+ * Get a pet
+ */
+export function getPet({ id }: {
+    id: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: PetResponseDto;
+    }>(`/pets/${encodeURIComponent(id)}`, {
+        ...opts
+    }));
+}
+/**
+ * Update a pet
+ */
+export function updatePet({ id, petUpdateDto }: {
+    id: string;
+    petUpdateDto: PetUpdateDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: PetResponseDto;
+    }>(`/pets/${encodeURIComponent(id)}`, oazapfts.json({
+        ...opts,
+        method: "PUT",
+        body: petUpdateDto
+    })));
+}
+/**
+ * Delete a pet
+ */
+export function deletePet({ id }: {
+    id: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText(`/pets/${encodeURIComponent(id)}`, {
+        ...opts,
+        method: "DELETE"
+    }));
+}
+/**
+ * Merge pets
+ */
+export function mergePet({ id, mergePetDto }: {
+    id: string;
+    mergePetDto: MergePetDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: BulkIdResponseDto[];
+    }>(`/pets/${encodeURIComponent(id)}/merge`, oazapfts.json({
+        ...opts,
+        method: "POST",
+        body: mergePetDto
+    })));
+}
+/**
+ * Reassign pet detections
+ */
+export function reassignPetDetections({ id, assetPetUpdateDto }: {
+    id: string;
+    assetPetUpdateDto: AssetPetUpdateDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: PetResponseDto[];
+    }>(`/pets/${encodeURIComponent(id)}/reassign`, oazapfts.json({
+        ...opts,
+        method: "PUT",
+        body: assetPetUpdateDto
+    })));
+}
+/**
+ * Get pet statistics
+ */
+export function getPetStatistics({ id }: {
+    id: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: PetStatisticsResponseDto;
+    }>(`/pets/${encodeURIComponent(id)}/statistics`, {
+        ...opts
+    }));
+}
+/**
+ * Get pet thumbnail
+ */
+export function getPetThumbnail({ id }: {
+    id: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchBlob<{
+        status: 200;
+        data: Blob;
+    }>(`/pets/${encodeURIComponent(id)}/thumbnail`, {
+        ...opts
+    }));
+}
+/**
  * List all plugins
  */
 export function getPlugins(opts?: Oazapfts.RequestOpts) {
@@ -5496,6 +5888,23 @@ export function searchPerson({ name, withHidden }: {
         status: 200;
         data: PersonResponseDto[];
     }>(`/search/person${QS.query(QS.explode({
+        name,
+        withHidden
+    }))}`, {
+        ...opts
+    }));
+}
+/**
+ * Search pets
+ */
+export function searchPets({ name, withHidden }: {
+    name: string;
+    withHidden?: boolean;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: PetResponseDto[];
+    }>(`/search/pet${QS.query(QS.explode({
         name,
         withHidden
     }))}`, {
@@ -6326,7 +6735,7 @@ export function tagAssets({ id, bulkIdsDto }: {
 /**
  * Get time bucket
  */
-export function getTimeBucket({ albumId, bbox, isFavorite, isTrashed, key, order, personId, slug, tagId, timeBucket, userId, visibility, withCoordinates, withPartners, withStacked }: {
+export function getTimeBucket({ albumId, bbox, isFavorite, isTrashed, key, order, personId, petId, slug, tagId, timeBucket, userId, visibility, withCoordinates, withPartners, withStacked }: {
     albumId?: string;
     bbox?: string;
     isFavorite?: boolean;
@@ -6334,6 +6743,7 @@ export function getTimeBucket({ albumId, bbox, isFavorite, isTrashed, key, order
     key?: string;
     order?: AssetOrder;
     personId?: string;
+    petId?: string;
     slug?: string;
     tagId?: string;
     timeBucket: string;
@@ -6354,6 +6764,7 @@ export function getTimeBucket({ albumId, bbox, isFavorite, isTrashed, key, order
         key,
         order,
         personId,
+        petId,
         slug,
         tagId,
         timeBucket,
@@ -6369,7 +6780,7 @@ export function getTimeBucket({ albumId, bbox, isFavorite, isTrashed, key, order
 /**
  * Get time buckets
  */
-export function getTimeBuckets({ albumId, bbox, isFavorite, isTrashed, key, order, personId, slug, tagId, userId, visibility, withCoordinates, withPartners, withStacked }: {
+export function getTimeBuckets({ albumId, bbox, isFavorite, isTrashed, key, order, personId, petId, slug, tagId, userId, visibility, withCoordinates, withPartners, withStacked }: {
     albumId?: string;
     bbox?: string;
     isFavorite?: boolean;
@@ -6377,6 +6788,7 @@ export function getTimeBuckets({ albumId, bbox, isFavorite, isTrashed, key, orde
     key?: string;
     order?: AssetOrder;
     personId?: string;
+    petId?: string;
     slug?: string;
     tagId?: string;
     userId?: string;
@@ -6396,6 +6808,7 @@ export function getTimeBuckets({ albumId, bbox, isFavorite, isTrashed, key, orde
         key,
         order,
         personId,
+        petId,
         slug,
         tagId,
         userId,
@@ -7011,6 +7424,8 @@ export enum QueueName {
     VideoConversion = "videoConversion",
     FaceDetection = "faceDetection",
     FacialRecognition = "facialRecognition",
+    PetDetection = "petDetection",
+    PetRecognition = "petRecognition",
     SmartSearch = "smartSearch",
     DuplicateDetection = "duplicateDetection",
     BackgroundTask = "backgroundTask",

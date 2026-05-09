@@ -29,6 +29,7 @@ import {
   anyUuid,
   asUuid,
   hasPeople,
+  hasPets,
   removeUndefinedKeys,
   truncatedDate,
   unnest,
@@ -37,6 +38,7 @@ import {
   withExif,
   withFaces,
   withFacesAndPeople,
+  withAssetPetsAndPet,
   withFilePath,
   withFiles,
   withLibrary,
@@ -77,6 +79,7 @@ interface AssetBuilderOptions {
   albumId?: string;
   tagId?: string;
   personId?: string;
+  petId?: string;
   userIds?: string[];
   withStacked?: boolean;
   exifInfo?: boolean;
@@ -116,6 +119,7 @@ interface AssetGetByChecksumOptions {
 interface GetByIdsRelations {
   exifInfo?: boolean;
   faces?: { person?: boolean; withDeleted?: boolean };
+  assetPets?: boolean;
   files?: boolean;
   library?: boolean;
   owner?: boolean;
@@ -356,6 +360,7 @@ export class AssetRepository {
             {
               duplicatesDetectedAt: eb.ref('excluded.duplicatesDetectedAt'),
               facesRecognizedAt: eb.ref('excluded.facesRecognizedAt'),
+              petsRecognizedAt: eb.ref('excluded.petsRecognizedAt'),
               metadataExtractedAt: eb.ref('excluded.metadataExtractedAt'),
               ocrAt: eb.ref('excluded.ocrAt'),
             },
@@ -558,7 +563,7 @@ export class AssetRepository {
   @GenerateSql({ params: [DummyValue.UUID] })
   getById(
     id: string,
-    { exifInfo, faces, files, library, owner, smartSearch, stack, tags, edits }: GetByIdsRelations = {},
+    { exifInfo, faces, assetPets, files, library, owner, smartSearch, stack, tags, edits }: GetByIdsRelations = {},
   ) {
     return this.db
       .selectFrom('asset')
@@ -566,6 +571,7 @@ export class AssetRepository {
       .where('asset.id', '=', asUuid(id))
       .$if(!!exifInfo, withExif)
       .$if(!!faces, (qb) => qb.select(faces?.person ? withFacesAndPeople : withFaces).$narrowType<{ faces: NotNull }>())
+      .$if(!!assetPets, (qb) => qb.select(withAssetPetsAndPet))
       .$if(!!library, (qb) => qb.select(withLibrary))
       .$if(!!owner, (qb) => qb.select(withOwner))
       .$if(!!smartSearch, withSmartSearch)
@@ -736,6 +742,7 @@ export class AssetRepository {
               .where('album_asset.albumId', '=', asUuid(options.albumId!)),
           )
           .$if(!!options.personId, (qb) => hasPeople(qb, [options.personId!]))
+          .$if(!!options.petId, (qb) => hasPets(qb, [options.petId!]))
           .$if(!!options.withStacked, (qb) =>
             qb
               .leftJoin('stack', (join) =>
@@ -827,6 +834,7 @@ export class AssetRepository {
             ),
           )
           .$if(!!options.personId, (qb) => hasPeople(qb, [options.personId!]))
+          .$if(!!options.petId, (qb) => hasPets(qb, [options.petId!]))
           .$if(!!options.userIds, (qb) => qb.where('asset.ownerId', '=', anyUuid(options.userIds!)))
           .$if(options.isFavorite !== undefined, (qb) => qb.where('asset.isFavorite', '=', options.isFavorite!))
           .$if(!!options.withStacked, (qb) =>

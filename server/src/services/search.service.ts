@@ -3,6 +3,7 @@ import { LRUMap } from 'mnemonist';
 import { AssetMapOptions, AssetResponseDto, MapAsset, mapAsset } from 'src/dtos/asset-response.dto';
 import { AuthDto } from 'src/dtos/auth.dto';
 import { mapPerson, PersonResponseDto } from 'src/dtos/person.dto';
+import { mapPet, PetResponseDto } from 'src/dtos/pet.dto';
 import {
   LargeAssetSearchDto,
   mapPlaces,
@@ -10,6 +11,7 @@ import {
   PlacesResponseDto,
   RandomSearchDto,
   SearchPeopleDto,
+  SearchPetsDto,
   SearchPlacesDto,
   SearchResponseDto,
   SearchStatisticsResponseDto,
@@ -31,6 +33,11 @@ export class SearchService extends BaseService {
   async searchPerson(auth: AuthDto, dto: SearchPeopleDto): Promise<PersonResponseDto[]> {
     const people = await this.personRepository.getByName(auth.user.id, dto.name, { withHidden: dto.withHidden });
     return people.map((person) => mapPerson(person));
+  }
+
+  async searchPets(auth: AuthDto, dto: SearchPetsDto): Promise<PetResponseDto[]> {
+    const pets = await this.petRepository.getByName(auth.user.id, dto.name, { withHidden: dto.withHidden });
+    return pets.map((pet) => mapPet(pet));
   }
 
   async searchPlaces(dto: SearchPlacesDto): Promise<PlacesResponseDto[]> {

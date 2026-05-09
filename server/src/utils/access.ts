@@ -299,6 +299,22 @@ const checkOtherAccess = async (access: AccessRepository, request: OtherAccessRe
       return access.person.checkFaceOwnerAccess(auth.user.id, ids);
     }
 
+    case Permission.PetCreate: {
+      return access.pet.checkDetectionOwnerAccess(auth.user.id, ids);
+    }
+
+    case Permission.PetRead:
+    case Permission.PetUpdate:
+    case Permission.PetDelete:
+    case Permission.PetMerge:
+    case Permission.PetStatistics: {
+      return await access.pet.checkOwnerAccess(auth.user.id, ids);
+    }
+
+    case Permission.PetReassign: {
+      return access.pet.checkDetectionOwnerAccess(auth.user.id, ids);
+    }
+
     case Permission.PartnerUpdate: {
       return await access.partner.checkUpdateAccess(auth.user.id, ids);
     }

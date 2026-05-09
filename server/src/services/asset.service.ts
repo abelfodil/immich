@@ -66,6 +66,7 @@ export class AssetService extends BaseService {
       exifInfo: true,
       owner: true,
       faces: { person: true },
+      assetPets: true,
       stack: { assets: true },
       edits: true,
       tags: true,

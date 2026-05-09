@@ -204,6 +204,14 @@ export enum Permission {
   PersonMerge = 'person.merge',
   PersonReassign = 'person.reassign',
 
+  PetCreate = 'pet.create',
+  PetRead = 'pet.read',
+  PetUpdate = 'pet.update',
+  PetDelete = 'pet.delete',
+  PetStatistics = 'pet.statistics',
+  PetMerge = 'pet.merge',
+  PetReassign = 'pet.reassign',
+
   PinCodeCreate = 'pinCode.create',
   PinCodeUpdate = 'pinCode.update',
   PinCodeDelete = 'pinCode.delete',
@@ -754,6 +762,8 @@ export enum QueueName {
   VideoConversion = 'videoConversion',
   FaceDetection = 'faceDetection',
   FacialRecognition = 'facialRecognition',
+  PetDetection = 'petDetection',
+  PetRecognition = 'petRecognition',
   SmartSearch = 'smartSearch',
   DuplicateDetection = 'duplicateDetection',
   BackgroundTask = 'backgroundTask',
@@ -805,6 +815,13 @@ export enum JobName {
 
   FacialRecognitionQueueAll = 'FacialRecognitionQueueAll',
   FacialRecognition = 'FacialRecognition',
+
+  PetDetectionQueueAll = 'PetDetectionQueueAll',
+  PetDetection = 'PetDetection',
+  PetRecognitionQueueAll = 'PetRecognitionQueueAll',
+  PetRecognition = 'PetRecognition',
+  PetGenerateThumbnail = 'PetGenerateThumbnail',
+  PetCleanup = 'PetCleanup',
 
   FileDelete = 'FileDelete',
   FileMigrationQueueAll = 'FileMigrationQueueAll',
@@ -893,6 +910,7 @@ export enum QueueCleanType {
 export enum VectorIndex {
   Clip = 'clip_index',
   Face = 'face_index',
+  Pet = 'pet_index',
 }
 
 export enum DatabaseLock {
@@ -1128,6 +1146,7 @@ export enum ApiTag {
   NotificationsAdmin = 'Notifications (admin)',
   Partners = 'Partners',
   People = 'People',
+  Pets = 'Pets',
   Plugins = 'Plugins',
   Queues = 'Queues',
   Search = 'Search',

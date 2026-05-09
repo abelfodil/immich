@@ -137,6 +137,7 @@ const ServerFeaturesSchema = z
     search: z.boolean().describe('Whether search is enabled'),
     email: z.boolean().describe('Whether email notifications are enabled'),
     ocr: z.boolean().describe('Whether OCR is enabled'),
+    petRecognition: z.boolean().describe('Whether pet recognition is enabled'),
   })
   .meta({ id: 'ServerFeaturesDto' });
 

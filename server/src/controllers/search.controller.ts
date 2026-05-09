@@ -4,6 +4,7 @@ import { Endpoint, HistoryBuilder } from 'src/decorators';
 import { AssetResponseDto } from 'src/dtos/asset-response.dto';
 import { AuthDto } from 'src/dtos/auth.dto';
 import { PersonResponseDto } from 'src/dtos/person.dto';
+import { PetResponseDto } from 'src/dtos/pet.dto';
 import {
   LargeAssetSearchDto,
   MetadataSearchDto,
@@ -11,6 +12,7 @@ import {
   RandomSearchDto,
   SearchExploreResponseDto,
   SearchPeopleDto,
+  SearchPetsDto,
   SearchPlacesDto,
   SearchResponseDto,
   SearchStatisticsResponseDto,
@@ -107,6 +109,17 @@ export class SearchController {
   })
   searchPerson(@Auth() auth: AuthDto, @Query() dto: SearchPeopleDto): Promise<PersonResponseDto[]> {
     return this.service.searchPerson(auth, dto);
+  }
+
+  @Get('pet')
+  @Authenticated({ permission: Permission.PetRead })
+  @Endpoint({
+    summary: 'Search pets',
+    description: 'Search for pets by name.',
+    history: new HistoryBuilder().added('v1').beta('v1').stable('v2'),
+  })
+  searchPets(@Auth() auth: AuthDto, @Query() dto: SearchPetsDto): Promise<PetResponseDto[]> {
+    return this.service.searchPets(auth, dto);
   }
 
   @Get('places')

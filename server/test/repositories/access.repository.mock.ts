@@ -50,6 +50,11 @@ export const newAccessRepositoryMock = (): IAccessRepositoryMock => {
       checkOwnerAccess: vitest.fn().mockResolvedValue(new Set()),
     },
 
+    pet: {
+      checkDetectionOwnerAccess: vitest.fn().mockResolvedValue(new Set()),
+      checkOwnerAccess: vitest.fn().mockResolvedValue(new Set()),
+    },
+
     partner: {
       checkUpdateAccess: vitest.fn().mockResolvedValue(new Set()),
     },

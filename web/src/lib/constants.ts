@@ -50,6 +50,7 @@ export enum QueryParameter {
   PREVIOUS_ROUTE = 'previousRoute',
   QUERY = 'query',
   SEARCHED_PEOPLE = 'searchedPeople',
+  SEARCHED_PETS = 'searchedPets',
   SMART_SEARCH = 'smartSearch',
   PAGE = 'page',
   PATH = 'path',
@@ -276,6 +277,13 @@ export enum PersonPageViewMode {
   SELECT_PERSON = 'select-person',
   MERGE_PEOPLE = 'merge-people',
   UNASSIGN_ASSETS = 'unassign-faces',
+}
+
+export enum PetPageViewMode {
+  VIEW_ASSETS = 'view-assets',
+  SELECT_PET = 'select-pet',
+  MERGE_PETS = 'merge-pets',
+  UNASSIGN_DETECTIONS = 'unassign-detections',
 }
 
 export enum MediaType {

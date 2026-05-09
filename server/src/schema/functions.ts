@@ -287,3 +287,29 @@ export const asset_edit_audit = registerFunction({
       RETURN NULL;
     END`,
 });
+
+export const pet_delete_audit = registerFunction({
+  name: 'pet_delete_audit',
+  returnType: 'TRIGGER',
+  language: 'PLPGSQL',
+  body: `
+    BEGIN
+      INSERT INTO pet_audit ("petId", "ownerId")
+      SELECT "id", "ownerId"
+      FROM OLD;
+      RETURN NULL;
+    END`,
+});
+
+export const asset_pet_audit = registerFunction({
+  name: 'asset_pet_audit',
+  returnType: 'TRIGGER',
+  language: 'PLPGSQL',
+  body: `
+    BEGIN
+      INSERT INTO asset_pet_audit ("assetPetId", "assetId")
+      SELECT "id", "assetId"
+      FROM OLD;
+      RETURN NULL;
+    END`,
+});

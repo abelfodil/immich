@@ -11,6 +11,7 @@ import {
   asset_delete_audit,
   asset_face_audit,
   asset_metadata_audit,
+  asset_pet_audit,
   f_concat_ws,
   f_unaccent,
   immich_uuid_v7,
@@ -19,6 +20,7 @@ import {
   memory_delete_audit,
   partner_delete_audit,
   person_delete_audit,
+  pet_delete_audit,
   stack_delete_audit,
   updated_at,
   user_delete_audit,
@@ -39,6 +41,8 @@ import { AssetEditTable } from 'src/schema/tables/asset-edit.table';
 import { AssetExifTable } from 'src/schema/tables/asset-exif.table';
 import { AssetFaceAuditTable } from 'src/schema/tables/asset-face-audit.table';
 import { AssetFaceTable } from 'src/schema/tables/asset-face.table';
+import { AssetPetAuditTable } from 'src/schema/tables/asset-pet-audit.table';
+import { AssetPetTable } from 'src/schema/tables/asset-pet.table';
 import { AssetFileTable } from 'src/schema/tables/asset-file.table';
 import { AssetJobStatusTable } from 'src/schema/tables/asset-job-status.table';
 import { AssetMetadataAuditTable } from 'src/schema/tables/asset-metadata-audit.table';
@@ -60,6 +64,9 @@ import { PartnerAuditTable } from 'src/schema/tables/partner-audit.table';
 import { PartnerTable } from 'src/schema/tables/partner.table';
 import { PersonAuditTable } from 'src/schema/tables/person-audit.table';
 import { PersonTable } from 'src/schema/tables/person.table';
+import { PetAuditTable } from 'src/schema/tables/pet-audit.table';
+import { PetSearchTable } from 'src/schema/tables/pet-search.table';
+import { PetTable } from 'src/schema/tables/pet.table';
 import { PluginActionTable, PluginFilterTable, PluginTable } from 'src/schema/tables/plugin.table';
 import { SessionTable } from 'src/schema/tables/session.table';
 import { SharedLinkAssetTable } from 'src/schema/tables/shared-link-asset.table';
@@ -123,6 +130,11 @@ export class ImmichDatabase {
     PartnerTable,
     PersonTable,
     PersonAuditTable,
+    PetTable,
+    PetAuditTable,
+    AssetPetTable,
+    AssetPetAuditTable,
+    PetSearchTable,
     SessionTable,
     SharedLinkAssetTable,
     SharedLinkTable,
@@ -168,6 +180,8 @@ export class ImmichDatabase {
     user_metadata_audit,
     asset_metadata_audit,
     asset_face_audit,
+    pet_delete_audit,
+    asset_pet_audit,
   ];
 
   enum = [album_user_role_enum, assets_status_enum, asset_face_source_type, asset_visibility_enum];
@@ -234,6 +248,12 @@ export interface DB {
 
   person: PersonTable;
   person_audit: PersonAuditTable;
+
+  pet: PetTable;
+  pet_audit: PetAuditTable;
+  asset_pet: AssetPetTable;
+  asset_pet_audit: AssetPetAuditTable;
+  pet_search: PetSearchTable;
 
   session: SessionTable;
   session_sync_checkpoint: SessionSyncCheckpointTable;

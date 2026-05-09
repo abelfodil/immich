@@ -148,6 +148,18 @@ export interface FaceSearchResult {
   personId: string | null;
 }
 
+export interface PetEmbeddingSearch extends SearchEmbeddingOptions {
+  hasPet?: boolean;
+  numResults: number;
+  maxDistance: number;
+}
+
+export interface PetSearchResult {
+  distance: number;
+  id: string;
+  petId: string | null;
+}
+
 export interface AssetDuplicateResult {
   assetId: string;
   duplicateId: string | null;
@@ -339,6 +351,47 @@ export class SearchRepository {
                 eb.or([eb('person.birthDate', 'is', null), eb('person.birthDate', '<=', minBirthDate!)]),
               ),
             )
+            .orderBy('distance')
+            .limit(numResults),
+        )
+        .selectFrom('cte')
+        .selectAll()
+        .where('cte.distance', '<=', maxDistance)
+        .execute();
+    });
+  }
+
+  @GenerateSql({
+    params: [
+      {
+        userIds: [DummyValue.UUID],
+        embedding: DummyValue.VECTOR,
+        numResults: 10,
+        maxDistance: 0.6,
+      },
+    ],
+  })
+  searchPets({ userIds, embedding, numResults, maxDistance, hasPet }: PetEmbeddingSearch) {
+    if (!isValidInteger(numResults, { min: 1, max: 1000 })) {
+      throw new Error(`Invalid value for 'numResults': ${numResults}`);
+    }
+
+    return this.db.transaction().execute(async (trx) => {
+      await sql`set local vchordrq.probes = ${sql.lit(probes[VectorIndex.Pet])}`.execute(trx);
+      return await trx
+        .with('cte', (qb) =>
+          qb
+            .selectFrom('asset_pet')
+            .select([
+              'asset_pet.id',
+              'asset_pet.petId',
+              sql<number>`pet_search.embedding <=> ${embedding}`.as('distance'),
+            ])
+            .innerJoin('asset', 'asset.id', 'asset_pet.assetId')
+            .innerJoin('pet_search', 'pet_search.petId', 'asset_pet.id')
+            .where('asset.ownerId', '=', anyUuid(userIds))
+            .where('asset.deletedAt', 'is', null)
+            .$if(!!hasPet, (qb) => qb.where('asset_pet.petId', 'is not', null))
             .orderBy('distance')
             .limit(numResults),
         )

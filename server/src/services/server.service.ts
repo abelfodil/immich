@@ -22,6 +22,7 @@ import { mimeTypes } from 'src/utils/mime-types';
 import {
   isDuplicateDetectionEnabled,
   isFacialRecognitionEnabled,
+  isPetRecognitionEnabled,
   isOcrEnabled,
   isSmartSearchEnabled,
 } from 'src/utils/misc';
@@ -103,6 +104,7 @@ export class ServerService extends BaseService {
       oauth: oauth.enabled,
       oauthAutoLaunch: oauth.autoLaunch,
       ocr: isOcrEnabled(machineLearning),
+      petRecognition: isPetRecognitionEnabled(machineLearning),
       passwordLogin: passwordLogin.enabled,
       configFile: !!configFile,
       email: notifications.smtp.enabled,

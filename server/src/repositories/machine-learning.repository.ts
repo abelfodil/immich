@@ -16,6 +16,8 @@ export enum ModelTask {
   FACIAL_RECOGNITION = 'facial-recognition',
   SEARCH = 'clip',
   OCR = 'ocr',
+  OBJECT_DETECTION = 'object-detection',
+  PET_RECOGNITION = 'pet-recognition',
 }
 
 export enum ModelType {
@@ -32,6 +34,30 @@ export type ModelPayload = { imagePath: string } | { text: string };
 type ModelOptions = { modelName: string };
 
 export type FaceDetectionOptions = ModelOptions & { minScore: number };
+
+export type ObjectDetectionOptions = ModelOptions & { minScore: number; classFilter?: number[] };
+
+export interface DetectedPet {
+  boundingBox: BoundingBox;
+  embedding: string;
+  score: number;
+  classId: number;
+}
+
+export type ObjectDetectionRequest = {
+  [ModelTask.OBJECT_DETECTION]: {
+    [ModelType.DETECTION]: ModelOptions & { options: { minScore: number; classFilter?: number[] } };
+  };
+};
+
+export type PetRecognitionRequest = ObjectDetectionRequest & {
+  [ModelTask.PET_RECOGNITION]: {
+    [ModelType.RECOGNITION]: ModelOptions;
+  };
+};
+
+export type PetRecognitionResponse = { [ModelTask.PET_RECOGNITION]: DetectedPet[] } & VisualResponse;
+export type DetectedPets = { pets: DetectedPet[] } & VisualResponse;
 export type OcrOptions = ModelOptions & {
   minDetectionScore: number;
   minRecognitionScore: number;
@@ -74,7 +100,7 @@ export interface Face {
 
 export type FacialRecognitionResponse = { [ModelTask.FACIAL_RECOGNITION]: Face[] } & VisualResponse;
 export type DetectedFaces = { faces: Face[] } & VisualResponse;
-export type MachineLearningRequest = ClipVisualRequest | ClipTextualRequest | FacialRecognitionRequest | OcrRequest;
+export type MachineLearningRequest = ClipVisualRequest | ClipTextualRequest | FacialRecognitionRequest | OcrRequest | ObjectDetectionRequest | PetRecognitionRequest;
 export type TextEncodingOptions = ModelOptions & { language?: string };
 
 @Injectable()
@@ -203,6 +229,23 @@ export class MachineLearningRepository {
       imageHeight: response.imageHeight,
       imageWidth: response.imageWidth,
       faces: response[ModelTask.FACIAL_RECOGNITION],
+    };
+  }
+
+  async detectPets(imagePath: string, detection: ObjectDetectionOptions, recognition: ModelOptions): Promise<DetectedPets> {
+    const request: PetRecognitionRequest = {
+      [ModelTask.OBJECT_DETECTION]: {
+        [ModelType.DETECTION]: { modelName: detection.modelName, options: { minScore: detection.minScore, classFilter: detection.classFilter } },
+      },
+      [ModelTask.PET_RECOGNITION]: {
+        [ModelType.RECOGNITION]: { modelName: recognition.modelName },
+      },
+    };
+    const response = await this.predict<PetRecognitionResponse>({ imagePath }, request);
+    return {
+      imageHeight: response.imageHeight,
+      imageWidth: response.imageWidth,
+      pets: response[ModelTask.PET_RECOGNITION],
     };
   }
 

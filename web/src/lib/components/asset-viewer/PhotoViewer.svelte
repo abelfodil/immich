@@ -56,6 +56,7 @@
   onDestroy(() => {
     assetViewerManager.clearHighlightedFaces();
     assetViewerManager.hideHiddenPeople();
+    assetViewerManager.hideHiddenPets();
   });
 
   let containerWidth = $state(0);

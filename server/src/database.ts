@@ -276,6 +276,40 @@ export type AssetFace = {
   isVisible: boolean;
 };
 
+export type Pet = {
+  id: string;
+  ownerId: string;
+  name: string;
+  species: string;
+  thumbnailPath: string;
+  isHidden: boolean;
+  isFavorite: boolean;
+  color: string | null;
+  thumbnailAssetId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  updateId: string;
+};
+
+export type AssetPet = {
+  id: string;
+  deletedAt: Date | null;
+  assetId: string;
+  petId: string | null;
+  boundingBoxX1: number;
+  boundingBoxX2: number;
+  boundingBoxY1: number;
+  boundingBoxY2: number;
+  imageHeight: number;
+  imageWidth: number;
+  sourceType: SourceType;
+  species: string;
+  pet?: ShallowDehydrateObject<Pet> | null;
+  updatedAt: Date;
+  updateId: string;
+  isVisible: boolean;
+};
+
 export type PluginFilter = Selectable<PluginFilterTable> & {
   methodName: string;
   title: string;
